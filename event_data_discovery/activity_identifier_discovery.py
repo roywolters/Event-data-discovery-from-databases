@@ -102,17 +102,17 @@ class ActivityIdentifierDiscoverer:
 
     def evaluate(self, names, classifiers, n_splits=5, verbose=0):
 
-        eval_results = dict()
+        eval_results = list()
 
         cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=1)
         scoring = ['precision', 'recall', 'f1']
 
-        for name, clf in classifiers.items():
+        for name, clf in zip(names, classifiers):
             print(str(datetime.now()) + ': evaluating ' + name)
-            eval_results[name] = cross_validate(clf, self.feature_values, self.y_true, scoring=scoring, cv=cv,
-                                                verbose=verbose)
+            eval_results.append(cross_validate(clf, self.feature_values, self.y_true, scoring=scoring, cv=cv,
+                                                verbose=verbose))
 
-        for name, res in eval_results.items():
+        for name, res in zip(names, eval_results):
             print('evaluation results for predictor ' + name + ':')
             print('average precision: ' + str(res['test_precision'].mean()))
             print('average recall: ' + str(res['test_recall'].mean()))
@@ -121,8 +121,10 @@ class ActivityIdentifierDiscoverer:
 
         return eval_results
 
-    def tune_params(self, classifiers, parameters, scoring = 'f1', n_splits=5, verbose = 0):
+    def tune_params(self, classifiers, parameters, scoring = 'f1', n_splits=5, verbose=0):
+
         tuning_results = list()
+
         for clf, params in zip(classifiers, parameters):
             tuner = GridSearchCV(clf, params, scoring=scoring, cv=n_splits, refit=False, verbose=verbose,
                                  return_train_score=False)
@@ -133,4 +135,5 @@ class ActivityIdentifierDiscoverer:
                 'best_params': tuner.best_params_,
                 'best_index': tuner.best_index_,
             })
+
         return tuning_results
