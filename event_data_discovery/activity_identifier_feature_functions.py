@@ -159,7 +159,7 @@ def nr_values_where_timestamp(candidates, feature_values, engine, meta):
             fv['nr_unique_values_where_timestamp'] = 0
 
     endtime = datetime.now()
-    print("time for 'nr_values_where_timestamp': " + str(endtime - starttime))
+    # print("time for 'nr_values_where_timestamp': " + str(endtime - starttime))
 
 
 def nr_unique_values_where_timestamp(candidates, feature_values, engine, meta):
@@ -177,7 +177,7 @@ def not_null_ratio(candidates, feature_values, engine, meta):
         if 'nr_timestamps' not in fv:
             nr_timestamps(candidates, feature_values, engine, meta)
         if fv['nr_timestamps'] == 0:
-            fv['not_null_ratio'] = None
+            fv['not_null_ratio'] = 0
         else:
             fv['not_null_ratio'] = fv['nr_values_where_timestamp'] / fv['nr_timestamps']
 
@@ -189,6 +189,15 @@ def log_nr_timestamps(candidates, feature_values, engine, meta):
         if 'nr_timestamps' not in fv:
             nr_timestamps(candidates, feature_values, engine, meta)
         fv['log_nr_timestamps'] = log1p(fv['nr_timestamps'])
+
+
+def log_nr_values_where_timestamp(candidates, feature_values, engine, meta):
+    if _check_already_calculated('log_nr_values_where_timestamp', feature_values):
+        return
+    for fv in feature_values:
+        if 'nr_values_where_timestamp' not in fv:
+            nr_values_where_timestamp(candidates, feature_values, engine, meta)
+        fv['log_nr_values_where_timestamp'] = log1p(fv['nr_values_where_timestamp'])
 
 
 def log_nr_unique_values_where_timestamp(candidates, feature_values, engine, meta):
@@ -206,12 +215,12 @@ def uniqueness_ratio(candidates, feature_values, engine, meta):
     for fv in feature_values:
         if 'nr_unique_values_where_timestamp' not in fv:
             nr_unique_values_where_timestamp(candidates, feature_values, engine, meta)
-        if 'nr_timestamps' not in fv:
-            nr_timestamps(candidates, feature_values, engine, meta)
-        if fv['nr_timestamps'] == 0:
-            fv['uniqueness_ratio'] = None
+        if 'nr_values_where_timestamp' not in fv:
+            nr_values_where_timestamp(candidates, feature_values, engine, meta)
+        if fv['nr_values_where_timestamp'] == 0:
+            fv['uniqueness_ratio'] = 0
         else:
-            fv['uniqueness_ratio'] = fv['nr_unique_values_where_timestamp'] / fv['nr_timestamps']
+            fv['uniqueness_ratio'] = fv['nr_unique_values_where_timestamp'] / fv['nr_values_where_timestamp']
 
 
 def log_uniqueness_ratio(candidates, feature_values, engine, meta):
@@ -220,12 +229,12 @@ def log_uniqueness_ratio(candidates, feature_values, engine, meta):
     for fv in feature_values:
         if 'log_nr_unique_values_where_timestamp' not in fv:
             log_nr_unique_values_where_timestamp(candidates, feature_values, engine, meta)
-        if 'log_nr_timestamps' not in fv:
-            log_nr_timestamps(candidates, feature_values, engine, meta)
-        if fv['log_nr_timestamps'] == 0:
+        if 'log_nr_values_where_timestamp' not in fv:
+            log_nr_values_where_timestamp(candidates, feature_values, engine, meta)
+        if fv['log_nr_values_where_timestamp'] == 0:
             fv['log_uniqueness_ratio'] = 0
         else:
-            fv['log_uniqueness_ratio'] = fv['log_nr_unique_values_where_timestamp'] / fv['log_nr_timestamps']
+            fv['log_uniqueness_ratio'] = fv['log_nr_unique_values_where_timestamp'] / fv['log_nr_values_where_timestamp']
 
 
 def nr_no_timestamp(candidates, feature_values, engine, meta):
@@ -390,7 +399,7 @@ def log_text_length_mean(candidates, feature_values, engine, meta):
         return
     for fv in feature_values:
         if 'text_length_mean' not in fv:
-            nr_timestamps(candidates, feature_values, engine, meta)
+            text_length_mean(candidates, feature_values, engine, meta)
         fv['log_text_length_mean'] = log1p(fv['text_length_mean'])
 
 
@@ -624,6 +633,7 @@ all_ = [
     nr_unique_values_where_timestamp,
     not_null_ratio,
     log_nr_timestamps,
+    log_nr_values_where_timestamp,
     log_nr_unique_values_where_timestamp,
     uniqueness_ratio,
     log_uniqueness_ratio,
@@ -642,11 +652,11 @@ all_ = [
 
 
 filtered = [
-    candidate_type,
+    # candidate_type,
     data_type,
     not_null_ratio,
     log_uniqueness_ratio,
-    timestamp_ratio,
+    # timestamp_ratio,
     no_ts_no_value_ratio,
     log_text_length_mean,
     text_length_cv,
