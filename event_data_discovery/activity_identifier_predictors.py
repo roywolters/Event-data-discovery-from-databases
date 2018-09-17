@@ -1,4 +1,3 @@
-import random
 import numpy as np
 
 from sklearn.base import BaseEstimator, ClassifierMixin
@@ -28,7 +27,6 @@ class OnePerTS(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, X):
-        # y = [0] * len(X)
         y = np.zeros(len(X))
         ts_to_cand = dict()
         for i, x in enumerate(X):
@@ -36,5 +34,5 @@ class OnePerTS(BaseEstimator, ClassifierMixin):
                 ts_to_cand[x['timestamp_attribute_id']] = list()
             ts_to_cand[x['timestamp_attribute_id']].append(i)
         for i in ts_to_cand:
-            y[random.choice(ts_to_cand[i])] = 1
+            y[self.random_state_.choice(ts_to_cand[i])] = 1
         return y
